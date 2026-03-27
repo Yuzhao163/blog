@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blogify - A Modern Blog Platform</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simplemde@1.11.2/dist/simplemde.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+      <div class="nav-container">
+        <a href="#/" class="nav-brand">
+          <i class="fas fa-blog"></i>
+          <span>Blogify</span>
+        </a>
+        <button class="mobile-toggle" id="mobileToggle">
+          <i class="fas fa-bars"></i>
+        </button>
+        <div class="nav-menu" id="navMenu">
+          <a href="#/" class="nav-link"><i class="fas fa-home"></i> Home</a>
+          <a href="#/tags" class="nav-link"><i class="fas fa-tags"></i> Tags</a>
+          <div class="nav-search">
+            <form id="searchForm" class="search-form">
+              <input type="text" id="searchInput" placeholder="Search posts..." autocomplete="off">
+              <button type="submit"><i class="fas fa-search"></i></button>
+            </form>
+          </div>
+          <div class="nav-auth" id="navAuth">
+            <!-- Dynamic auth buttons -->
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+      <!-- Dynamic page content -->
+    </main>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-content">
+        <p>&copy; 2024 Blogify. Built with Node.js & Express</p>
+      </div>
+    </footer>
+
+    <!-- Theme Toggle -->
+    <button class="theme-toggle" id="themeToggle" title="Toggle theme">
+      <i class="fas fa-moon"></i>
+    </button>
+  </div>
+
+  <!-- Templates -->
+  <template id="homeTemplate">
+    <div class="page-home">
+      <header class="hero">
+        <div class="hero-content">
+          <h1>Welcome to Blogify</h1>
+          <p>Share your thoughts, ideas, and stories with the world</p>
+          <div class="hero-actions" id="heroActions"></div>
+        </div>
+      </header>
+      <section class="posts-section">
+        <div class="section-header">
+          <h2><i class="fas fa-newspaper"></i> Latest Posts</h2>
+          <div class="filter-options">
+            <select id="categoryFilter">
+              <option value="">All Categories</option>
+            </select>
+          </div>
+        </div>
+        <div class="posts-grid" id="postsGrid">
+          <!-- Posts will be loaded here -->
+        </div>
+        <div class="pagination" id="pagination">
+          <!-- Pagination will be loaded here -->
+        </div>
+      </section>
+    </div>
+  </template>
+
+  <template id="postDetailTemplate">
+    <div class="page-post-detail">
+      <article class="post-article" id="postArticle">
+        <!-- Post content will be loaded here -->
+      </article>
+      <section class="comments-section">
+        <h3><i class="fas fa-comments"></i> Comments (<span id="commentCount">0</span>)</h3>
+        <div class="comment-form" id="commentForm">
+          <!-- Comment form for logged in users -->
+        </div>
+        <div class="comments-list" id="commentsList">
+          <!-- Comments will be loaded here -->
+        </div>
+      </section>
+    </div>
+  </template>
+
+  <template id="createPostTemplate">
+    <div class="page-create-post">
+      <div class="page-header">
+        <h1><i class="fas fa-pen"></i> Create New Post</h1>
+      </div>
+      <form class="post-form" id="postForm">
+        <div class="form-group">
+          <label for="postTitle">Title</label>
+          <input type="text" id="postTitle" required placeholder="Enter post title">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="postCategory">Category</label>
+            <input type="text" id="postCategory" placeholder="e.g., Technology, Lifestyle">
+          </div>
+          <div class="form-group">
+            <label for="postTags">Tags</label>
+            <input type="text" id="postTags" placeholder="Comma separated: javascript, web, tutorial">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="postCover">Cover Image URL (optional)</label>
+          <input type="text" id="postCover" placeholder="https://example.com/image.jpg">
+        </div>
+        <div class="form-group">
+          <label for="postContent">Content (Markdown supported)</label>
+          <textarea id="postContent" required></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Publish</button>
+          <button type="button" class="btn btn-secondary" id="previewBtn"><i class="fas fa-eye"></i> Preview</button>
+        </div>
+      </form>
+      <div class="preview-container" id="previewContainer" style="display: none;">
+        <h3>Preview</h3>
+        <div class="preview-content" id="previewContent"></div>
+      </div>
+    </div>
+  </template>
+
+  <template id="editPostTemplate">
+    <div class="page-edit-post">
+      <div class="page-header">
+        <h1><i class="fas fa-edit"></i> Edit Post</h1>
+      </div>
+      <form class="post-form" id="editForm">
+        <div class="form-group">
+          <label for="editTitle">Title</label>
+          <input type="text" id="editTitle" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editCategory">Category</label>
+            <input type="text" id="editCategory">
+          </div>
+          <div class="form-group">
+            <label for="editTags">Tags</label>
+            <input type="text" id="editTags">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="editCover">Cover Image URL</label>
+          <input type="text" id="editCover">
+        </div>
+        <div class="form-group">
+          <label for="editContent">Content (Markdown supported)</label>
+          <textarea id="editContent"></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Update</button>
+          <a href="#/" class="btn btn-secondary"><i class="fas fa-times"></i> Cancel</a>
+        </div>
+      </form>
+    </div>
+  </template>
+
+  <template id="loginTemplate">
+    <div class="page-auth">
+      <div class="auth-container">
+        <div class="auth-card">
+          <h2><i class="fas fa-sign-in-alt"></i> Login</h2>
+          <form id="loginForm">
+            <div class="form-group">
+              <label for="loginEmail">Email</label>
+              <input type="email" id="loginEmail" required>
+            </div>
+            <div class="form-group">
+              <label for="loginPassword">Password</label>
+              <input type="password" id="loginPassword" required>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary btn-block">Login</button>
+            </div>
+          </form>
+          <p class="auth-footer">
+            Don't have an account? <a href="#/register">Register</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <template id="registerTemplate">
+    <div class="page-auth">
+      <div class="auth-container">
+        <div class="auth-card">
+          <h2><i class="fas fa-user-plus"></i> Register</h2>
+          <form id="registerForm">
+            <div class="form-group">
+              <label for="registerUsername">Username</label>
+              <input type="text" id="registerUsername" required minlength="3" maxlength="30">
+            </div>
+            <div class="form-group">
+              <label for="registerEmail">Email</label>
+              <input type="email" id="registerEmail" required>
+            </div>
+            <div class="form-group">
+              <label for="registerPassword">Password</label>
+              <input type="password" id="registerPassword" required minlength="6">
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary btn-block">Register</button>
+            </div>
+          </form>
+          <p class="auth-footer">
+            Already have an account? <a href="#/login">Login</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <template id="profileTemplate">
+    <div class="page-profile">
+      <div class="profile-header">
+        <img src="" alt="Avatar" class="profile-avatar" id="profileAvatar">
+        <div class="profile-info">
+          <h1 id="profileUsername"></h1>
+          <p class="profile-bio" id="profileBio"></p>
+          <div class="profile-stats">
+            <span><i class="fas fa-newspaper"></i> <span id="profilePostCount">0</span> posts</span>
+            <span><i class="fas fa-heart"></i> <span id="profileTotalLikes">0</span> likes</span>
+            <span><i class="fas fa-calendar"></i> Joined <span id="profileJoinedDate"></span></span>
+          </div>
+        </div>
+      </div>
+      <section class="profile-posts">
+        <h2><i class="fas fa-newspaper"></i> Posts by <span id="profilePostsBy"></span></h2>
+        <div class="posts-grid" id="profilePostsGrid"></div>
+        <div class="pagination" id="profilePagination"></div>
+      </section>
+    </div>
+  </template>
+
+  <template id="tagsTemplate">
+    <div class="page-tags">
+      <div class="page-header">
+        <h1><i class="fas fa-tags"></i> Tags & Categories</h1>
+      </div>
+      <div class="tags-container">
+        <div class="tags-section">
+          <h3><i class="fas fa-folder"></i> Categories</h3>
+          <div class="tags-list" id="categoriesList"></div>
+        </div>
+        <div class="tags-section">
+          <h3><i class="fas fa-tag"></i> Tags</h3>
+          <div class="tags-list" id="tagsList"></div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <template id="searchTemplate">
+    <div class="page-search">
+      <div class="page-header">
+        <h1><i class="fas fa-search"></i> Search Results</h1>
+        <p class="search-query" id="searchQuery"></p>
+      </div>
+      <div class="posts-grid" id="searchResults"></div>
+      <div class="pagination" id="searchPagination"></div>
+    </div>
+  </template>
+
+  <template id="tagPostsTemplate">
+    <div class="page-tag-posts">
+      <div class="page-header">
+        <h1><i class="fas fa-tag"></i> <span id="tagName"></span></h1>
+      </div>
+      <div class="posts-grid" id="tagPostsGrid"></div>
+      <div class="pagination" id="tagPostsPagination"></div>
+    </div>
+  </template>
+
+  <template id="notFoundTemplate">
+    <div class="page-not-found">
+      <div class="not-found-content">
+        <h1><i class="fas fa-exclamation-triangle"></i> 404</h1>
+        <p>Page not found</p>
+        <a href="#/" class="btn btn-primary">Go Home</a>
+      </div>
+    </div>
+  </template>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/11.1.1/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/simplemde@1.11.2/dist/simplemde.min.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>
